@@ -1,0 +1,56 @@
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: slave1
+spec:
+  selector:
+    matchLabels:
+      app: slave1
+  serviceName: slave1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: slave1
+    spec:
+      containers:
+      - name: slave1
+        image: karthiksurabathula/jmeter
+        args: ["-n -t /mnt/jmeter/script.jmx -l /mnt/jmeter/results/result-2020-06-21_18-39-44.jtl -j /mnt/jmeter/logs/slave1-log-2020-06-21_18-39-44.log -R SERVERS"]
+        env:
+        - name: JVM_ARGS
+          value: "-Xms512m -Xmx1024m"
+        - name: mode
+          value: "slave1"
+        resources:
+          limits:
+            memory: 1024Mi
+            cpu: 1000m
+          requests:
+            cpu: 1000m
+            memory: 1024Mi
+        volumeMounts:
+          - name: slave1
+            mountPath: /mnt/jmeter
+      volumes:
+      - name: slave1
+        hostPath:
+          path: /c/Pratheep/Tools/jmeter-master/jmeter-master/kubernetes-init/data/
+          type: DirectoryOrCreate 
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: slave1
+spec:
+  selector:
+    app: slave1
+  ports:
+    - name: slave1
+      port: 1099
+  type: ClusterIP
+
+---
